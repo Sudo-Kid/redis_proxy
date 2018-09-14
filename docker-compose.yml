@@ -1,0 +1,19 @@
+version: "3.4"
+
+services:
+  redis:
+    image: redis
+    ports:
+      - "127.0.0.1:6379:6379"
+    logging:
+      driver: "none"
+
+  redis_proxy:
+    build: ./redis_proxy/.
+    ports:
+      - "127.0.0.1:4000:4000"
+    environment:
+      - REDIS_HOST="redis"
+      - REDIS_PORT=6379
+      - CACHE_SIZE=10
+
