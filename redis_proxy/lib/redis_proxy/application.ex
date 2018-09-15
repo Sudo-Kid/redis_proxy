@@ -21,8 +21,6 @@ defmodule RedisProxy.Application do
     :pg2.create(:redis)
 
     {port, _} = Integer.parse(System.get_env("REDIS_PORT"))
-    IO.puts "PORT #{port}"
-
     {:ok, redis} = Redix.start_link(host: System.get_env("REDIS_HOST"), port: port)
     :pg2.join(:redis, redis)
 
@@ -36,6 +34,22 @@ defmodule RedisProxy.Application do
   # whenever the application is updated.
   def config_change(changed, _new, removed) do
     RedisProxyWeb.Endpoint.config_change(changed, removed)
+    :ok
+  end
+
+  def start_cache() do
+    {parallel_cache, _} = Integer.parse(System.get_env("PARALLEL_CACHE"))
+  end
+
+  def start_cache(parallel_cache) when parallel_cache > 0 do
+    :pg2.create(:cache)
+    {:ok, cache} = RedisProxy.Cache.start_link()
+    :pg2.join(:cache, cache)
+
+    start_cache(parallel_cache - 1)
+  end
+
+  def start_cahce(_) do
     :ok
   end
 end
